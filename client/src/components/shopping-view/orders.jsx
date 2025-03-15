@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Badge } from "../ui/badge";
-import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
 import {
   fetchAllOrders,
@@ -118,7 +117,7 @@ function Orders() {
         </div>
       </div>
       <Dialog open={showOrderDetails} onOpenChange={setShowOrderDetails}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
             <DialogDescription>
@@ -126,101 +125,97 @@ function Orders() {
             </DialogDescription>
           </DialogHeader>
           {orderDetails && (
-            <ScrollArea className="h-[600px]">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="font-semibold">Order Information</h3>
-                  <Separator className="my-2" />
-                  <div className="grid gap-1">
-                    <p className="text-sm">
-                      <span className="font-medium">Order ID:</span>{" "}
-                      {orderDetails._id}
-                    </p>
-                    <p className="text-sm">
-                      <span className="font-medium">Order Date:</span>{" "}
-                      {new Date(
-                        orderDetails.createdAt
-                      ).toLocaleDateString()}
-                    </p>
-                    <p className="text-sm">
-                      <span className="font-medium">Status:</span>{" "}
-                      {orderDetails.orderStatus}
-                    </p>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Shipping Address</h3>
-                  <Separator className="my-2" />
-                  <div className="grid gap-1">
-                    <p className="text-sm">
-                      {orderDetails.addressId.address}
-                    </p>
-                    <p className="text-sm">
-                      {orderDetails.addressId.city},{" "}
-                      {orderDetails.addressId.pincode}
-                    </p>
-                    <p className="text-sm">
-                      Phone: {orderDetails.addressId.phone}
-                    </p>
-                    {orderDetails.addressId.notes && (
-                      <p className="text-sm">
-                        Notes: {orderDetails.addressId.notes}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Items</h3>
-                  <Separator className="my-2" />
-                  <div className="grid gap-4">
-                    {orderDetails.items.map((item) => (
-                      <div
-                        key={item._id}
-                        className="flex items-center gap-4"
-                      >
-                        <img
-                          src={item.productId.image}
-                          alt={item.productId.title}
-                          className="h-20 w-20 rounded-lg object-cover"
-                        />
-                        <div>
-                          <h4 className="font-medium">
-                            {item.productId.title}
-                          </h4>
-                          <p className="text-sm text-gray-500">
-                            Quantity: {item.quantity}
-                          </p>
-                          <p className="text-sm font-medium">
-                            $
-                            {item.productId.salePrice > 0
-                              ? item.productId.salePrice * item.quantity
-                              : item.productId.price * item.quantity}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Order Summary</h3>
-                  <Separator className="my-2" />
-                  <div className="flex justify-between">
-                    <p className="font-medium">Total</p>
-                    <p className="font-bold">
-                      $
-                      {orderDetails.items.reduce((total, item) => {
-                        return (
-                          total +
-                          (item.productId.salePrice > 0
-                            ? item.productId.salePrice * item.quantity
-                            : item.productId.price * item.quantity)
-                        );
-                      }, 0)}
-                    </p>
-                  </div>
+            <div className="space-y-6 max-h-[70vh] overflow-y-auto">
+              <div>
+                <h3 className="font-semibold">Order Information</h3>
+                <Separator className="my-2" />
+                <div className="grid gap-1">
+                  <p className="text-sm">
+                    <span className="font-medium">Order ID:</span>{" "}
+                    {orderDetails._id}
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-medium">Order Date:</span>{" "}
+                    {new Date(orderDetails.createdAt).toLocaleDateString()}
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-medium">Status:</span>{" "}
+                    {orderDetails.orderStatus}
+                  </p>
                 </div>
               </div>
-            </ScrollArea>
+              <div>
+                <h3 className="font-semibold">Shipping Address</h3>
+                <Separator className="my-2" />
+                <div className="grid gap-1">
+                  <p className="text-sm">
+                    {orderDetails.addressId.address}
+                  </p>
+                  <p className="text-sm">
+                    {orderDetails.addressId.city},{" "}
+                    {orderDetails.addressId.pincode}
+                  </p>
+                  <p className="text-sm">
+                    Phone: {orderDetails.addressId.phone}
+                  </p>
+                  {orderDetails.addressId.notes && (
+                    <p className="text-sm">
+                      Notes: {orderDetails.addressId.notes}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div>
+                <h3 className="font-semibold">Items</h3>
+                <Separator className="my-2" />
+                <div className="grid gap-4">
+                  {orderDetails.items.map((item) => (
+                    <div
+                      key={item._id}
+                      className="flex items-center gap-4"
+                    >
+                      <img
+                        src={item.productId.image}
+                        alt={item.productId.title}
+                        className="h-20 w-20 rounded-lg object-cover"
+                      />
+                      <div>
+                        <h4 className="font-medium">
+                          {item.productId.title}
+                        </h4>
+                        <p className="text-sm text-gray-500">
+                          Quantity: {item.quantity}
+                        </p>
+                        <p className="text-sm font-medium">
+                          $
+                          {item.productId.salePrice > 0
+                            ? item.productId.salePrice * item.quantity
+                            : item.productId.price * item.quantity}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h3 className="font-semibold">Order Summary</h3>
+                <Separator className="my-2" />
+                <div className="flex justify-between">
+                  <p className="font-medium">Total</p>
+                  <p className="font-bold">
+                    $
+                    {orderDetails.items.reduce((total, item) => {
+                      return (
+                        total +
+                        (item.productId.salePrice > 0
+                          ? item.productId.salePrice * item.quantity
+                          : item.productId.price * item.quantity)
+                      );
+                    }, 0)}
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>
