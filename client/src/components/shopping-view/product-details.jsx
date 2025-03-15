@@ -11,7 +11,7 @@ import { setProductDetails } from "@/store/shop/products-slice";
 import { Label } from "../ui/label";
 import StarRatingComponent from "../common/star-rating";
 import { useEffect, useState } from "react";
-import { addReview, getReviews } from "@/store/shop/review-slice";
+import { addReview, getProductReviews } from "@/store/shop/review-slice";
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const [reviewMsg, setReviewMsg] = useState("");
@@ -84,7 +84,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       if (data.payload.success) {
         setRating(0);
         setReviewMsg("");
-        dispatch(getReviews(productDetails?._id));
+        dispatch(getProductReviews(productDetails?._id));
         toast({
           title: "Review added successfully!",
         });
@@ -93,7 +93,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   }
 
   useEffect(() => {
-    if (productDetails !== null) dispatch(getReviews(productDetails?._id));
+    if (productDetails !== null) dispatch(getProductReviews(productDetails?._id));
   }, [productDetails]);
 
   console.log(reviews, "reviews");
