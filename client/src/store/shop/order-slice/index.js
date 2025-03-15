@@ -11,19 +11,12 @@ const initialState = {
 
 export const createOrder = createAsyncThunk(
   "/order/createOrder",
-  async (orderData) => {
-    const response = await axiosInstance.post("/api/shop/order/create", orderData);
-    return response.data;
-  }
-);
-
-export const capturePayment = createAsyncThunk(
-  "/order/capturePayment",
-  async ({ paymentId, payerId, orderId }) => {
-    const response = await axiosInstance.post("/api/shop/order/capture", {
-      paymentId,
-      payerId,
-      orderId,
+  async ({ userId, cartItems, addressId, orderStatus }) => {
+    const response = await axiosInstance.post("/api/shop/order/create", {
+      userId,
+      cartItems,
+      addressId,
+      orderStatus,
     });
     return response.data;
   }
@@ -32,7 +25,7 @@ export const capturePayment = createAsyncThunk(
 export const fetchAllOrders = createAsyncThunk(
   "/order/fetchAllOrders",
   async (userId) => {
-    const response = await axiosInstance.get(`/api/shop/order/list/${userId}`);
+    const response = await axiosInstance.get(`/api/shop/order/get/${userId}`);
     return response.data;
   }
 );
@@ -41,7 +34,7 @@ export const fetchOrderDetails = createAsyncThunk(
   "/order/fetchOrderDetails",
   async ({ userId, orderId }) => {
     const response = await axiosInstance.get(
-      `/api/shop/order/details/${orderId}`
+      `/api/shop/order/get-details/${userId}/${orderId}`
     );
     return response.data;
   }
@@ -74,23 +67,8 @@ const shoppingOrderSlice = createSlice({
       .addCase(createOrder.fulfilled, (state, action) => {
         state.isLoading = false;
         state.orderList = [...state.orderList, action.payload.data];
-        state.approvalURL = action.payload.approvalURL;
-        state.orderId = action.payload.orderId;
       })
       .addCase(createOrder.rejected, (state) => {
-        state.isLoading = false;
-      })
-      .addCase(capturePayment.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(capturePayment.fulfilled, (state, action) => {
-        state.isLoading = false;
-        const updatedOrder = action.payload.data;
-        state.orderList = state.orderList.map((order) =>
-          order._id === updatedOrder._id ? updatedOrder : order
-        );
-      })
-      .addCase(capturePayment.rejected, (state) => {
         state.isLoading = false;
       })
       .addCase(fetchAllOrders.pending, (state) => {

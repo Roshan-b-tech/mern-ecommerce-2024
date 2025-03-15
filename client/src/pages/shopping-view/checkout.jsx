@@ -1,11 +1,14 @@
 import Address from "@/components/shopping-view/address";
+import img from "../../assets/account.jpg";
 import { useDispatch, useSelector } from "react-redux";
+import UserCartItemsContent from "@/components/shopping-view/cart-items-content";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createOrder } from "@/store/shop/order-slice";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { fetchCartItems } from "@/store/shop/cart-slice";
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function ShoppingCheckout() {
@@ -44,28 +47,9 @@ function ShoppingCheckout() {
 
     const orderData = {
       userId: user?.id,
-      cartItems: cartItems.items.map(item => ({
-        productId: item.productId._id || item.productId,
-        title: item.productId.title,
-        image: item.productId.image,
-        price: item.productId.salePrice > 0 ? item.productId.salePrice : item.productId.price,
-        quantity: item.quantity
-      })),
-      addressInfo: {
-        addressId: currentSelectedAddress._id,
-        address: currentSelectedAddress.address,
-        city: currentSelectedAddress.city,
-        pincode: currentSelectedAddress.pincode,
-        phone: currentSelectedAddress.phone || "",
-        notes: currentSelectedAddress.notes || ""
-      },
+      cartItems: cartItems.items,
+      addressId: currentSelectedAddress,
       orderStatus: "pending",
-      paymentMethod: "paypal",
-      paymentStatus: "pending",
-      totalAmount: totalCartAmount,
-      orderDate: new Date(),
-      orderUpdateDate: new Date(),
-      cartId: cartItems._id
     };
 
     dispatch(createOrder(orderData)).then((data) => {
@@ -74,20 +58,8 @@ function ShoppingCheckout() {
           title: "Order placed successfully",
         });
         dispatch(fetchCartItems(user?.id));
-        navigate("/orders");
-      } else {
-        toast({
-          title: "Failed to place order",
-          description: data?.payload?.message || "Please try again",
-          variant: "destructive",
-        });
+        navigate("/order-success");
       }
-    }).catch(error => {
-      toast({
-        title: "Failed to place order",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
     });
   }
 
