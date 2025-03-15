@@ -13,8 +13,8 @@ import {
 import ShoppingOrderDetailsView from "./order-details";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  getAllOrdersByUserId,
-  getOrderDetails,
+  fetchAllOrders,
+  fetchOrderDetails,
   resetOrderDetails,
 } from "@/store/shop/order-slice";
 import { Badge } from "../ui/badge";
@@ -25,13 +25,13 @@ function ShoppingOrders() {
   const { user } = useSelector((state) => state.auth);
   const { orderList, orderDetails } = useSelector((state) => state.shopOrder);
 
-  function handleFetchOrderDetails(getId) {
-    dispatch(getOrderDetails(getId));
+  function handleFetchOrderDetails(orderId) {
+    dispatch(fetchOrderDetails({ userId: user?.id, orderId }));
   }
 
   useEffect(() => {
-    dispatch(getAllOrdersByUserId(user?.id));
-  }, [dispatch]);
+    dispatch(fetchAllOrders(user?.id));
+  }, [dispatch, user?.id]);
 
   useEffect(() => {
     if (orderDetails !== null) setOpenDetailsDialog(true);
