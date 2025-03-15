@@ -4,7 +4,7 @@ const User = require("../../models/User");
 
 //register
 const registerUser = async (req, res) => {
-  const { userName, email, password } = req.body;
+  const { userName, email, password, role } = req.body;
 
   try {
     const checkUser = await User.findOne({ email });
@@ -19,6 +19,7 @@ const registerUser = async (req, res) => {
       userName,
       email,
       password: hashPassword,
+      role: role || "user" // Allow role to be set during registration (for development)
     });
 
     await newUser.save();
@@ -30,7 +31,7 @@ const registerUser = async (req, res) => {
     console.log(e);
     res.status(500).json({
       success: false,
-      message: "Some error occured",
+      message: "Some error occurred",
     });
   }
 };

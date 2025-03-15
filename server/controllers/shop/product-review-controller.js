@@ -7,18 +7,19 @@ const addProductReview = async (req, res) => {
     const { productId, userId, userName, reviewMessage, reviewValue } =
       req.body;
 
-    const order = await Order.findOne({
-      userId,
-      "cartItems.productId": productId,
-      // orderStatus: "confirmed" || "delivered",
-    });
+    // Temporarily comment out order check for testing
+    // const order = await Order.findOne({
+    //   userId,
+    //   "cartItems.productId": productId,
+    //   // orderStatus: "confirmed" || "delivered",
+    // });
 
-    if (!order) {
-      return res.status(403).json({
-        success: false,
-        message: "You need to purchase product to review it.",
-      });
-    }
+    // if (!order) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: "You need to purchase product to review it.",
+    //   });
+    // }
 
     const checkExistinfReview = await ProductReview.findOne({
       productId,

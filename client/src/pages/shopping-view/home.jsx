@@ -52,11 +52,10 @@ function ShoppingHome() {
   const { productList, productDetails } = useSelector(
     (state) => state.shopProducts
   );
-  const { featureImageList } = useSelector((state) => state.commonFeature);
-
+  const { user } = useSelector((state) => state.auth);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
-  const { user } = useSelector((state) => state.auth);
+  const bannerImages = [bannerOne, bannerTwo, bannerThree];
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -94,18 +93,6 @@ function ShoppingHome() {
   }
 
   useEffect(() => {
-    if (productDetails !== null) setOpenDetailsDialog(true);
-  }, [productDetails]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prevSlide) => (prevSlide + 1) % featureImageList.length);
-    }, 15000);
-
-    return () => clearInterval(timer);
-  }, [featureImageList]);
-
-  useEffect(() => {
     dispatch(
       fetchAllFilteredProducts({
         filterParams: {},
@@ -114,34 +101,40 @@ function ShoppingHome() {
     );
   }, [dispatch]);
 
-  console.log(productList, "productList");
+  useEffect(() => {
+    if (productDetails !== null) setOpenDetailsDialog(true);
+  }, [productDetails]);
 
   useEffect(() => {
-    dispatch(getFeatureImages());
-  }, [dispatch]);
+    const timer = setInterval(() => {
+      setCurrentSlide((prevSlide) => (prevSlide + 1) % bannerImages.length);
+    }, 15000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  console.log(productList, "productList");
 
   return (
     <div className="flex flex-col min-h-screen">
       <div className="relative w-full h-[600px] overflow-hidden">
-        {featureImageList && featureImageList.length > 0
-          ? featureImageList.map((slide, index) => (
-              <img
-                src={slide?.image}
-                key={index}
-                className={`${
-                  index === currentSlide ? "opacity-100" : "opacity-0"
-                } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
-              />
-            ))
-          : null}
+        {bannerImages.map((image, index) => (
+          <img
+            src={image}
+            key={index}
+            alt={`Banner ${index + 1}`}
+            className={`${index === currentSlide ? "opacity-100" : "opacity-0"
+              } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
+          />
+        ))}
         <Button
           variant="outline"
           size="icon"
           onClick={() =>
             setCurrentSlide(
               (prevSlide) =>
-                (prevSlide - 1 + featureImageList.length) %
-                featureImageList.length
+                (prevSlide - 1 + bannerImages.length) %
+                bannerImages.length
             )
           }
           className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80"
@@ -153,7 +146,7 @@ function ShoppingHome() {
           size="icon"
           onClick={() =>
             setCurrentSlide(
-              (prevSlide) => (prevSlide + 1) % featureImageList.length
+              (prevSlide) => (prevSlide + 1) % bannerImages.length
             )
           }
           className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80"
@@ -211,12 +204,12 @@ function ShoppingHome() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {productList && productList.length > 0
               ? productList.map((productItem) => (
-                  <ShoppingProductTile
-                    handleGetProductDetails={handleGetProductDetails}
-                    product={productItem}
-                    handleAddtoCart={handleAddtoCart}
-                  />
-                ))
+                <ShoppingProductTile
+                  handleGetProductDetails={handleGetProductDetails}
+                  product={productItem}
+                  handleAddtoCart={handleAddtoCart}
+                />
+              ))
               : null}
           </div>
         </div>
