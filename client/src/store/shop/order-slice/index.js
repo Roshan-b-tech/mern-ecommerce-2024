@@ -17,6 +17,18 @@ export const createOrder = createAsyncThunk(
   }
 );
 
+export const capturePayment = createAsyncThunk(
+  "/order/capturePayment",
+  async ({ paymentId, payerId, orderId }) => {
+    const response = await axiosInstance.post("/api/shop/order/capture", {
+      paymentId,
+      payerId,
+      orderId,
+    });
+    return response.data;
+  }
+);
+
 export const fetchAllOrders = createAsyncThunk(
   "/order/fetchAllOrders",
   async (userId) => {
@@ -70,6 +82,22 @@ const shoppingOrderSlice = createSlice({
         state.orderId = action.payload.orderId;
       })
       .addCase(createOrder.rejected, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(capturePayment.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(capturePayment.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const updatedOrder = action.payload.data;
+        state.orderList = state.orderList.map((order) =>
+          order._id === updatedOrder._id ? updatedOrder : order
+        );
+        // Reset PayPal-related state
+        state.approvalURL = null;
+        state.orderId = null;
+      })
+      .addCase(capturePayment.rejected, (state) => {
         state.isLoading = false;
       })
       .addCase(fetchAllOrders.pending, (state) => {
