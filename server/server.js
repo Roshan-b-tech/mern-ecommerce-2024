@@ -47,6 +47,16 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
+// Root route
+app.get("/", (req, res) => {
+  res.json({ message: "Welcome to MERN E-commerce API" });
+});
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/admin/products", adminProductsRouter);
@@ -59,9 +69,26 @@ app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/common/feature", commonFeatureRouter);
 
-// Health check endpoint
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok" });
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    message: "Something broke!",
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+// Handle 404 routes
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found"
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`Client URL: ${process.env.CLIENT_URL}`);
+});
