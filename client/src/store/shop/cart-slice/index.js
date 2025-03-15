@@ -1,5 +1,5 @@
-import axios from "axios";
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axiosInstance from "@/config/axios";
 
 const initialState = {
   cartItems: [],
@@ -9,15 +9,11 @@ const initialState = {
 export const addToCart = createAsyncThunk(
   "cart/addToCart",
   async ({ userId, productId, quantity }) => {
-    const response = await axios.post(
-      "http://localhost:5000/api/shop/cart/add",
-      {
-        userId,
-        productId,
-        quantity,
-      }
-    );
-
+    const response = await axiosInstance.post("/api/shop/cart/add", {
+      userId,
+      productId,
+      quantity,
+    });
     return response.data;
   }
 );
@@ -25,37 +21,29 @@ export const addToCart = createAsyncThunk(
 export const fetchCartItems = createAsyncThunk(
   "cart/fetchCartItems",
   async (userId) => {
-    const response = await axios.get(
-      `http://localhost:5000/api/shop/cart/get/${userId}`
-    );
-
-    return response.data;
-  }
-);
-
-export const deleteCartItem = createAsyncThunk(
-  "cart/deleteCartItem",
-  async ({ userId, productId }) => {
-    const response = await axios.delete(
-      `http://localhost:5000/api/shop/cart/${userId}/${productId}`
-    );
-
+    const response = await axiosInstance.get(`/api/shop/cart/get/${userId}`);
     return response.data;
   }
 );
 
 export const updateCartQuantity = createAsyncThunk(
-  "cart/updateCartQuantity",
+  "cart/updateQuantity",
   async ({ userId, productId, quantity }) => {
-    const response = await axios.put(
-      "http://localhost:5000/api/shop/cart/update-cart",
-      {
-        userId,
-        productId,
-        quantity,
-      }
-    );
+    const response = await axiosInstance.put(`/api/shop/cart/update`, {
+      userId,
+      productId,
+      quantity,
+    });
+    return response.data;
+  }
+);
 
+export const deleteCartItem = createAsyncThunk(
+  "cart/deleteItem",
+  async ({ userId, productId }) => {
+    const response = await axiosInstance.delete(
+      `/api/shop/cart/delete/${userId}/${productId}`
+    );
     return response.data;
   }
 );
