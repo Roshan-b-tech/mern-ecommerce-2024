@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axiosInstance from "@/config/axios";
 
 const initialState = {
   isLoading: false,
@@ -9,11 +9,7 @@ const initialState = {
 export const addNewAddress = createAsyncThunk(
   "/addresses/addNewAddress",
   async (formData) => {
-    const response = await axios.post(
-      "http://localhost:5000/api/shop/address/add",
-      formData
-    );
-
+    const response = await axiosInstance.post("/api/shop/address/add", formData);
     return response.data;
   }
 );
@@ -21,22 +17,18 @@ export const addNewAddress = createAsyncThunk(
 export const fetchAllAddresses = createAsyncThunk(
   "/addresses/fetchAllAddresses",
   async (userId) => {
-    const response = await axios.get(
-      `http://localhost:5000/api/shop/address/get/${userId}`
-    );
-
+    const response = await axiosInstance.get(`/api/shop/address/get/${userId}`);
     return response.data;
   }
 );
 
-export const editaAddress = createAsyncThunk(
-  "/addresses/editaAddress",
+export const editAddress = createAsyncThunk(
+  "/addresses/editAddress",
   async ({ userId, addressId, formData }) => {
-    const response = await axios.put(
-      `http://localhost:5000/api/shop/address/update/${userId}/${addressId}`,
+    const response = await axiosInstance.put(
+      `/api/shop/address/edit/${userId}/${addressId}`,
       formData
     );
-
     return response.data;
   }
 );
@@ -44,16 +36,15 @@ export const editaAddress = createAsyncThunk(
 export const deleteAddress = createAsyncThunk(
   "/addresses/deleteAddress",
   async ({ userId, addressId }) => {
-    const response = await axios.delete(
-      `http://localhost:5000/api/shop/address/delete/${userId}/${addressId}`
+    const response = await axiosInstance.delete(
+      `/api/shop/address/delete/${userId}/${addressId}`
     );
-
     return response.data;
   }
 );
 
-const addressSlice = createSlice({
-  name: "address",
+const shoppingAddressSlice = createSlice({
+  name: "shoppingAddress",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
@@ -63,6 +54,7 @@ const addressSlice = createSlice({
       })
       .addCase(addNewAddress.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.addressList = [...state.addressList, action.payload.data];
       })
       .addCase(addNewAddress.rejected, (state) => {
         state.isLoading = false;
@@ -77,8 +69,33 @@ const addressSlice = createSlice({
       .addCase(fetchAllAddresses.rejected, (state) => {
         state.isLoading = false;
         state.addressList = [];
+      })
+      .addCase(editAddress.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(editAddress.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const updatedAddress = action.payload.data;
+        state.addressList = state.addressList.map((address) =>
+          address._id === updatedAddress._id ? updatedAddress : address
+        );
+      })
+      .addCase(editAddress.rejected, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(deleteAddress.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(deleteAddress.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.addressList = state.addressList.filter(
+          (address) => address._id !== action.payload.addressId
+        );
+      })
+      .addCase(deleteAddress.rejected, (state) => {
+        state.isLoading = false;
       });
   },
 });
 
-export default addressSlice.reducer;
+export default shoppingAddressSlice.reducer;
