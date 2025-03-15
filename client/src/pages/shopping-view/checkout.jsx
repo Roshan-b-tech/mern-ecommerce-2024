@@ -47,9 +47,28 @@ function ShoppingCheckout() {
 
     const orderData = {
       userId: user?.id,
-      cartItems: cartItems.items,
-      addressId: currentSelectedAddress,
+      cartItems: cartItems.items.map(item => ({
+        productId: item.productId._id || item.productId,
+        title: item.productId.title,
+        image: item.productId.image,
+        price: item.productId.salePrice > 0 ? item.productId.salePrice : item.productId.price,
+        quantity: item.quantity
+      })),
+      addressInfo: {
+        addressId: currentSelectedAddress._id,
+        address: currentSelectedAddress.address,
+        city: currentSelectedAddress.city,
+        pincode: currentSelectedAddress.pincode,
+        phone: currentSelectedAddress.phone || "",
+        notes: currentSelectedAddress.notes || ""
+      },
       orderStatus: "pending",
+      paymentMethod: "paypal",
+      paymentStatus: "pending",
+      totalAmount: totalCartAmount,
+      orderDate: new Date(),
+      orderUpdateDate: new Date(),
+      cartId: cartItems._id
     };
 
     dispatch(createOrder(orderData)).then((data) => {
@@ -59,7 +78,19 @@ function ShoppingCheckout() {
         });
         dispatch(fetchCartItems(user?.id));
         navigate("/orders");
+      } else {
+        toast({
+          title: "Failed to place order",
+          description: data?.payload?.message || "Please try again",
+          variant: "destructive",
+        });
       }
+    }).catch(error => {
+      toast({
+        title: "Failed to place order",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
     });
   }
 
