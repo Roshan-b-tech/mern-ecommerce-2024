@@ -47,11 +47,14 @@ function AdminProducts() {
   function onSubmit(event) {
     event.preventDefault();
 
-    currentEditedId !== null
-      ? dispatch(
+    if (currentEditedId !== null) {
+      dispatch(
         editProduct({
           id: currentEditedId,
-          formData,
+          formData: {
+            ...formData,
+            image: uploadedImageUrl || formData.image
+          }
         })
       ).then((data) => {
         console.log(data, "edit");
@@ -61,24 +64,29 @@ function AdminProducts() {
           setFormData(initialFormData);
           setOpenCreateProductsDialog(false);
           setCurrentEditedId(null);
+          setUploadedImageUrl("");
+          setImageFile(null);
         }
-      })
-      : dispatch(
+      });
+    } else {
+      dispatch(
         addNewProduct({
           ...formData,
-          image: uploadedImageUrl,
+          image: uploadedImageUrl
         })
       ).then((data) => {
         if (data?.payload?.success) {
           dispatch(fetchAllProducts());
           setOpenCreateProductsDialog(false);
           setImageFile(null);
+          setUploadedImageUrl("");
           setFormData(initialFormData);
           toast({
-            title: "Product add successfully",
+            title: "Product added successfully"
           });
         }
       });
+    }
   }
 
   function handleDelete(getCurrentProductId) {

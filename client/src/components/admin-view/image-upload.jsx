@@ -13,7 +13,7 @@ function ProductImageUpload({
   uploadedImageUrl,
   setUploadedImageUrl,
   setImageLoadingState,
-  isEditMode,
+  isEditMode = false,
   currentImage,
   isCustomStyling = false,
 }) {
@@ -21,7 +21,11 @@ function ProductImageUpload({
   const [previewUrl, setPreviewUrl] = useState(null);
   const [imageError, setImageError] = useState(false);
 
-  console.log(isEditMode, "isEditMode");
+  useEffect(() => {
+    if (isEditMode) {
+      console.log("Edit mode enabled");
+    }
+  }, [isEditMode]);
 
   useEffect(() => {
     // Create preview URL for the selected file
@@ -88,34 +92,62 @@ function ProductImageUpload({
 
       setImageLoadingState(true);
       const data = new FormData();
-      data.append("file", imageFile);
-      data.append("upload_preset", "photo123");
+      data.append("my_file", imageFile);
 
-      // Log the upload URL and file details for debugging
-      console.log("Uploading file:", imageFile.name);
-      console.log("File type:", imageFile.type);
-      console.log("File size:", imageFile.size);
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        // Add timeout and validate status
+        timeout: 30000,
+        validateStatus: (status) => status >= 200 && status < 300
+      };
 
-      const cloudName = "dxqhk2qjn"; // Replace with your actual cloud name
-      const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-
-      console.log("Uploading to:", uploadUrl);
-
-      const response = await axios.post(uploadUrl, data);
-
-      console.log("Upload response:", response.data);
-
-      if (response?.data?.secure_url) {
-        console.log("Upload successful, URL:", response.data.secure_url);
-        setUploadedImageUrl(response.data.secure_url);
-      } else {
-        console.error("Upload failed - no secure_url in response:", response.data);
-      }
-    } catch (error) {
-      console.error("Upload error details:", {
-        message: error.message,
-        response: error.response?.data
+      console.log("Starting upload for file:", {
+        name: imageFile.name,
+        type: imageFile.type,
+        size: imageFile.size
       });
+
+      const response = await axios.post(
+        "http://localhost:5000/api/admin/products/upload-image",
+        data,
+        config
+      );
+
+      if (!response.data) {
+        throw new Error('No response data received');
+      }
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Upload failed');
+      }
+
+      if (!response.data.result?.url) {
+        throw new Error('No URL in response');
+      }
+
+      console.log("Upload successful, URL:", response.data.result.url);
+      setUploadedImageUrl(response.data.result.url);
+
+    } catch (error) {
+      console.error("Upload failed:", {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        responseData: error.response?.data,
+        config: error.config
+      });
+
+      // Reset state on error
+      setImageFile(null);
+      setPreviewUrl(null);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+
+      // You might want to show this error to the user
+      alert(`Upload failed: ${error.message}`);
     } finally {
       setImageLoadingState(false);
     }
@@ -124,6 +156,10 @@ function ProductImageUpload({
   useEffect(() => {
     if (imageFile !== null) uploadImageToCloudinary();
   }, [imageFile]);
+
+  useEffect(() => {
+    console.log("Current uploadedImageUrl:", uploadedImageUrl);
+  }, [uploadedImageUrl]);
 
   return (
     <div className={`w-full mt-4 ${isCustomStyling ? "" : "max-w-md mx-auto"}`}>

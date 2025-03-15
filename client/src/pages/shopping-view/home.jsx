@@ -49,6 +49,8 @@ const brandsWithIcon = [
 ];
 function ShoppingHome() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
   const { productList, productDetails } = useSelector(
     (state) => state.shopProducts
   );
@@ -92,6 +94,33 @@ function ShoppingHome() {
     });
   }
 
+  const handleTouchStart = (e) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
+    }
+
+    if (isRightSwipe) {
+      setCurrentSlide((prev) => (prev - 1 + bannerImages.length) % bannerImages.length);
+    }
+
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
   useEffect(() => {
     dispatch(
       fetchAllFilteredProducts({
@@ -117,16 +146,44 @@ function ShoppingHome() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="relative w-full h-[600px] overflow-hidden">
-        {bannerImages.map((image, index) => (
-          <img
-            src={image}
-            key={index}
-            alt={`Banner ${index + 1}`}
-            className={`${index === currentSlide ? "opacity-100" : "opacity-0"
-              } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
-          />
-        ))}
+      <div
+        className="relative w-full overflow-hidden h-[250px] sm:h-[350px] md:h-[450px] lg:h-[600px]"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className="absolute inset-0">
+          {bannerImages.map((image, index) => (
+            <img
+              src={image}
+              key={index}
+              alt={`Banner ${index + 1}`}
+              loading={index === 0 ? "eager" : "lazy"}
+              className={`${index === currentSlide ? "opacity-100" : "opacity-0"
+                } absolute inset-0 w-full h-full object-cover transition-opacity duration-1000`}
+              style={{
+                objectPosition: '50% 50%'
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Navigation dots for mobile */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+          {bannerImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-2 h-2 rounded-full transition-all ${index === currentSlide
+                ? "bg-white w-4"
+                : "bg-white/50 hover:bg-white/75"
+                }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+
+        {/* Navigation arrows - hidden on mobile */}
         <Button
           variant="outline"
           size="icon"
@@ -137,7 +194,8 @@ function ShoppingHome() {
                 bannerImages.length
             )
           }
-          className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80"
+          className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80 hidden md:flex hover:bg-white"
+          aria-label="Previous slide"
         >
           <ChevronLeftIcon className="w-4 h-4" />
         </Button>
@@ -149,7 +207,8 @@ function ShoppingHome() {
               (prevSlide) => (prevSlide + 1) % bannerImages.length
             )
           }
-          className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80"
+          className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80 hidden md:flex hover:bg-white"
+          aria-label="Next slide"
         >
           <ChevronRightIcon className="w-4 h-4" />
         </Button>
