@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosInstance from "@/config/axios";
 
 const initialState = {
   approvalURL: null,
@@ -9,58 +9,50 @@ const initialState = {
   orderDetails: null,
 };
 
-export const createNewOrder = createAsyncThunk(
-  "/order/createNewOrder",
-  async (orderData) => {
-    const response = await axios.post(
-      "http://localhost:5000/api/shop/order/create",
-      orderData
-    );
-
+export const createOrder = createAsyncThunk(
+  "/order/createOrder",
+  async ({ userId, cartItems, addressId, orderStatus }) => {
+    const response = await axiosInstance.post("/api/shop/order/create", {
+      userId,
+      cartItems,
+      addressId,
+      orderStatus,
+    });
     return response.data;
   }
 );
 
-export const capturePayment = createAsyncThunk(
-  "/order/capturePayment",
-  async ({ paymentId, payerId, orderId }) => {
-    const response = await axios.post(
-      "http://localhost:5000/api/shop/order/capture",
-      {
-        paymentId,
-        payerId,
-        orderId,
-      }
-    );
-
-    return response.data;
-  }
-);
-
-export const getAllOrdersByUserId = createAsyncThunk(
-  "/order/getAllOrdersByUserId",
+export const fetchAllOrders = createAsyncThunk(
+  "/order/fetchAllOrders",
   async (userId) => {
-    const response = await axios.get(
-      `http://localhost:5000/api/shop/order/list/${userId}`
-    );
-
+    const response = await axiosInstance.get(`/api/shop/order/get/${userId}`);
     return response.data;
   }
 );
 
-export const getOrderDetails = createAsyncThunk(
-  "/order/getOrderDetails",
-  async (id) => {
-    const response = await axios.get(
-      `http://localhost:5000/api/shop/order/details/${id}`
+export const fetchOrderDetails = createAsyncThunk(
+  "/order/fetchOrderDetails",
+  async ({ userId, orderId }) => {
+    const response = await axiosInstance.get(
+      `/api/shop/order/get-details/${userId}/${orderId}`
     );
+    return response.data;
+  }
+);
 
+export const updateOrderStatus = createAsyncThunk(
+  "/order/updateOrderStatus",
+  async ({ userId, orderId, orderStatus }) => {
+    const response = await axiosInstance.put(
+      `/api/shop/order/update-status/${userId}/${orderId}`,
+      { orderStatus }
+    );
     return response.data;
   }
 );
 
 const shoppingOrderSlice = createSlice({
-  name: "shoppingOrderSlice",
+  name: "shoppingOrder",
   initialState,
   reducers: {
     resetOrderDetails: (state) => {
@@ -69,44 +61,50 @@ const shoppingOrderSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(createNewOrder.pending, (state) => {
+      .addCase(createOrder.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(createNewOrder.fulfilled, (state, action) => {
+      .addCase(createOrder.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.approvalURL = action.payload.approvalURL;
-        state.orderId = action.payload.orderId;
-        sessionStorage.setItem(
-          "currentOrderId",
-          JSON.stringify(action.payload.orderId)
-        );
+        state.orderList = [...state.orderList, action.payload.data];
       })
-      .addCase(createNewOrder.rejected, (state) => {
+      .addCase(createOrder.rejected, (state) => {
         state.isLoading = false;
-        state.approvalURL = null;
-        state.orderId = null;
       })
-      .addCase(getAllOrdersByUserId.pending, (state) => {
+      .addCase(fetchAllOrders.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(getAllOrdersByUserId.fulfilled, (state, action) => {
+      .addCase(fetchAllOrders.fulfilled, (state, action) => {
         state.isLoading = false;
         state.orderList = action.payload.data;
       })
-      .addCase(getAllOrdersByUserId.rejected, (state) => {
+      .addCase(fetchAllOrders.rejected, (state) => {
         state.isLoading = false;
         state.orderList = [];
       })
-      .addCase(getOrderDetails.pending, (state) => {
+      .addCase(fetchOrderDetails.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(getOrderDetails.fulfilled, (state, action) => {
+      .addCase(fetchOrderDetails.fulfilled, (state, action) => {
         state.isLoading = false;
         state.orderDetails = action.payload.data;
       })
-      .addCase(getOrderDetails.rejected, (state) => {
+      .addCase(fetchOrderDetails.rejected, (state) => {
         state.isLoading = false;
         state.orderDetails = null;
+      })
+      .addCase(updateOrderStatus.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateOrderStatus.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const updatedOrder = action.payload.data;
+        state.orderList = state.orderList.map((order) =>
+          order._id === updatedOrder._id ? updatedOrder : order
+        );
+      })
+      .addCase(updateOrderStatus.rejected, (state) => {
+        state.isLoading = false;
       });
   },
 });
