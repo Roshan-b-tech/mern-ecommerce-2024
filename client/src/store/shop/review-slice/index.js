@@ -22,6 +22,9 @@ export const getProductReviews = createAsyncThunk(
   }
 );
 
+// Alias for backward compatibility
+export const getReviews = getProductReviews;
+
 const reviewSlice = createSlice({
   name: "reviewSlice",
   initialState,
