@@ -39,19 +39,62 @@ const sampleProducts = [
 
 const handleImageUpload = async (req, res) => {
   try {
-    const b64 = Buffer.from(req.file.buffer).toString("base64");
-    const url = "data:" + req.file.mimetype + ";base64," + b64;
-    const result = await imageUploadUtil(url);
-
-    res.json({
-      success: true,
-      result,
+    // Log incoming request details
+    console.log("Upload request received:", {
+      hasFile: !!req.file,
+      fileDetails: req.file ? {
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        originalname: req.file.originalname
+      } : null
     });
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded"
+      });
+    }
+
+    if (!req.file.buffer) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid file format"
+      });
+    }
+
+    // Convert file to base64
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    const dataUri = `data:${req.file.mimetype};base64,${b64}`;
+
+    console.log("Attempting to upload to Cloudinary...");
+
+    try {
+      const result = await imageUploadUtil(dataUri);
+      console.log("Upload successful:", {
+        publicId: result.public_id,
+        url: result.secure_url,
+        format: result.format
+      });
+
+      return res.status(200).json({
+        success: true,
+        result: {
+          url: result.secure_url
+        }
+      });
+    } catch (uploadError) {
+      console.error("Cloudinary upload error:", uploadError);
+      return res.status(500).json({
+        success: false,
+        message: uploadError.message || "Error uploading to Cloudinary"
+      });
+    }
   } catch (error) {
-    console.log(error);
-    res.json({
+    console.error("Server error during upload:", error);
+    return res.status(500).json({
       success: false,
-      message: "Error occurred",
+      message: error.message || "Server error during upload"
     });
   }
 };
