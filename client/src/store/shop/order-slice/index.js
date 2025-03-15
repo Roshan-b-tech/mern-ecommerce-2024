@@ -11,13 +11,8 @@ const initialState = {
 
 export const createOrder = createAsyncThunk(
   "/order/createOrder",
-  async ({ userId, cartItems, addressId, orderStatus }) => {
-    const response = await axiosInstance.post("/api/shop/order/create", {
-      userId,
-      cartItems,
-      addressId,
-      orderStatus,
-    });
+  async (orderData) => {
+    const response = await axiosInstance.post("/api/shop/order/create", orderData);
     return response.data;
   }
 );
@@ -25,7 +20,7 @@ export const createOrder = createAsyncThunk(
 export const fetchAllOrders = createAsyncThunk(
   "/order/fetchAllOrders",
   async (userId) => {
-    const response = await axiosInstance.get(`/api/shop/order/get/${userId}`);
+    const response = await axiosInstance.get(`/api/shop/order/list/${userId}`);
     return response.data;
   }
 );
@@ -34,7 +29,7 @@ export const fetchOrderDetails = createAsyncThunk(
   "/order/fetchOrderDetails",
   async ({ userId, orderId }) => {
     const response = await axiosInstance.get(
-      `/api/shop/order/get-details/${userId}/${orderId}`
+      `/api/shop/order/details/${orderId}`
     );
     return response.data;
   }
@@ -50,6 +45,10 @@ export const updateOrderStatus = createAsyncThunk(
     return response.data;
   }
 );
+
+// Aliases for backward compatibility
+export const getOrderDetails = fetchOrderDetails;
+export const getAllOrdersByUserId = fetchAllOrders;
 
 const shoppingOrderSlice = createSlice({
   name: "shoppingOrder",
@@ -67,6 +66,8 @@ const shoppingOrderSlice = createSlice({
       .addCase(createOrder.fulfilled, (state, action) => {
         state.isLoading = false;
         state.orderList = [...state.orderList, action.payload.data];
+        state.approvalURL = action.payload.approvalURL;
+        state.orderId = action.payload.orderId;
       })
       .addCase(createOrder.rejected, (state) => {
         state.isLoading = false;
