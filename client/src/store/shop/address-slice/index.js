@@ -1,40 +1,31 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosInstance from "@/config/axios";
 
 const initialState = {
+  addresses: [],
   isLoading: false,
-  addressList: [],
 };
 
-export const addNewAddress = createAsyncThunk(
-  "/addresses/addNewAddress",
-  async (formData) => {
-    const response = await axios.post(
-      "http://localhost:5000/api/shop/address/add",
-      formData
+export const addAddress = createAsyncThunk(
+  "address/addAddress",
+  async ({ userId, addressData }) => {
+    const response = await axiosInstance.post(
+      "/api/shop/address/add",
+      {
+        userId,
+        ...addressData,
+      }
     );
 
     return response.data;
   }
 );
 
-export const fetchAllAddresses = createAsyncThunk(
-  "/addresses/fetchAllAddresses",
+export const fetchAddresses = createAsyncThunk(
+  "address/fetchAddresses",
   async (userId) => {
-    const response = await axios.get(
-      `http://localhost:5000/api/shop/address/get/${userId}`
-    );
-
-    return response.data;
-  }
-);
-
-export const editaAddress = createAsyncThunk(
-  "/addresses/editaAddress",
-  async ({ userId, addressId, formData }) => {
-    const response = await axios.put(
-      `http://localhost:5000/api/shop/address/update/${userId}/${addressId}`,
-      formData
+    const response = await axiosInstance.get(
+      `/api/shop/address/get/${userId}`
     );
 
     return response.data;
@@ -42,10 +33,10 @@ export const editaAddress = createAsyncThunk(
 );
 
 export const deleteAddress = createAsyncThunk(
-  "/addresses/deleteAddress",
+  "address/deleteAddress",
   async ({ userId, addressId }) => {
-    const response = await axios.delete(
-      `http://localhost:5000/api/shop/address/delete/${userId}/${addressId}`
+    const response = await axiosInstance.delete(
+      `/api/shop/address/${userId}/${addressId}`
     );
 
     return response.data;
@@ -58,25 +49,38 @@ const addressSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(addNewAddress.pending, (state) => {
+      .addCase(addAddress.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(addNewAddress.fulfilled, (state, action) => {
+      .addCase(addAddress.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.addresses = action.payload.data;
       })
-      .addCase(addNewAddress.rejected, (state) => {
+      .addCase(addAddress.rejected, (state) => {
         state.isLoading = false;
+        state.addresses = [];
       })
-      .addCase(fetchAllAddresses.pending, (state) => {
+      .addCase(fetchAddresses.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(fetchAllAddresses.fulfilled, (state, action) => {
+      .addCase(fetchAddresses.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.addressList = action.payload.data;
+        state.addresses = action.payload.data;
       })
-      .addCase(fetchAllAddresses.rejected, (state) => {
+      .addCase(fetchAddresses.rejected, (state) => {
         state.isLoading = false;
-        state.addressList = [];
+        state.addresses = [];
+      })
+      .addCase(deleteAddress.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(deleteAddress.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.addresses = action.payload.data;
+      })
+      .addCase(deleteAddress.rejected, (state) => {
+        state.isLoading = false;
+        state.addresses = [];
       });
   },
 });
