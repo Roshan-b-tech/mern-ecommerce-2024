@@ -70,6 +70,14 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   }
 
   function handleAddReview() {
+    if (!rating) {
+      toast({
+        title: "Please select a rating",
+        variant: "destructive",
+      });
+      return;
+    }
+
     dispatch(
       addReview({
         productId: productDetails?._id,
@@ -79,14 +87,24 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
         reviewValue: rating,
       })
     ).then((data) => {
-      if (data.payload.success) {
+      if (data?.payload?.success) {
         setRating(0);
         setReviewMsg("");
         dispatch(getReviews(productDetails?._id));
         toast({
-          title: "Review added successfully!",
+          title: data?.payload?.message || "Review added successfully!",
+        });
+      } else {
+        toast({
+          title: data?.payload?.message || "Failed to add review",
+          variant: "destructive",
         });
       }
+    }).catch((error) => {
+      toast({
+        title: "Error adding review",
+        variant: "destructive",
+      });
     });
   }
 
