@@ -78,34 +78,64 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       return;
     }
 
-    dispatch(
-      addReview({
-        productId: productDetails?._id,
-        userId: user?.id,
-        userName: user?.userName,
-        reviewMessage: reviewMsg,
-        reviewValue: rating,
-      })
-    ).then((data) => {
-      if (data?.payload?.success) {
-        setRating(0);
-        setReviewMsg("");
-        dispatch(getReviews(productDetails?._id));
-        toast({
-          title: data?.payload?.message || "Review added successfully!",
-        });
-      } else {
-        toast({
-          title: data?.payload?.message || "Failed to add review",
-          variant: "destructive",
-        });
-      }
-    }).catch((error) => {
+    if (!reviewMsg.trim()) {
       toast({
-        title: "Error adding review",
+        title: "Please write a review message",
         variant: "destructive",
       });
-    });
+      return;
+    }
+
+    if (!user?.id) {
+      toast({
+        title: "Please login to add a review",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const reviewData = {
+      productId: productDetails?._id,
+      userId: user?.id,
+      userName: user?.userName,
+      reviewMessage: reviewMsg.trim(),
+      reviewValue: Number(rating)
+    };
+
+    // Validate all required fields
+    if (!reviewData.productId || !reviewData.userId || !reviewData.userName) {
+      toast({
+        title: "Missing required information",
+        description: "Please try again or refresh the page",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    dispatch(addReview(reviewData))
+      .unwrap()
+      .then((response) => {
+        if (response.success) {
+          setRating(0);
+          setReviewMsg("");
+          dispatch(getReviews(productDetails?._id));
+          toast({
+            title: response.message || "Review added successfully!",
+          });
+        } else {
+          toast({
+            title: response.message || "Failed to add review",
+            variant: "destructive",
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('Review error:', error);
+        toast({
+          title: error?.message || "Error adding review",
+          variant: "destructive",
+        });
+      });
   }
 
   useEffect(() => {
