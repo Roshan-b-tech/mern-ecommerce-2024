@@ -147,7 +147,7 @@ function ShoppingHome() {
   return (
     <div className="flex flex-col min-h-screen">
       <div
-        className="relative w-full overflow-hidden h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px]"
+        className="relative w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] bg-gray-100"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -159,12 +159,13 @@ function ShoppingHome() {
               key={index}
               alt={`Banner ${index + 1}`}
               loading={index === 0 ? "eager" : "lazy"}
-              className={`${
-                index === currentSlide ? "opacity-100" : "opacity-0"
-              } absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000`}
+              className={`${index === currentSlide ? "opacity-100" : "opacity-0"
+                } absolute inset-0 w-full h-full transition-opacity duration-1000`}
               style={{
-                maxHeight: '100%',
-                width: '100%'
+                objectFit: 'contain',
+                backgroundColor: 'rgb(243 244 246)',
+                width: '100%',
+                height: '100%'
               }}
             />
           ))}
@@ -176,11 +177,10 @@ function ShoppingHome() {
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentSlide 
-                  ? "bg-white w-4" 
-                  : "bg-white/50 hover:bg-white/75"
-              }`}
+              className={`w-2 h-2 rounded-full transition-all ${index === currentSlide
+                ? "bg-white w-4"
+                : "bg-white/50 hover:bg-white/75"
+                }`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}

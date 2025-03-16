@@ -1,5 +1,5 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axiosInstance from "@/config/axios";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
 const initialState = {
   isLoading: false,
@@ -7,23 +7,24 @@ const initialState = {
 };
 
 export const addReview = createAsyncThunk(
-  "/review/addReview",
+  "/order/addReview",
   async (formdata) => {
-    const response = await axiosInstance.post(`/api/shop/review/add`, formdata);
+    const response = await axios.post(
+      `http://localhost:5000/api/shop/review/add`,
+      formdata
+    );
+
     return response.data;
   }
 );
 
-export const getProductReviews = createAsyncThunk(
-  "/review/getProductReviews",
-  async (productId) => {
-    const response = await axiosInstance.get(`/api/shop/review/get/${productId}`);
-    return response.data;
-  }
-);
+export const getReviews = createAsyncThunk("/order/getReviews", async (id) => {
+  const response = await axios.get(
+    `http://localhost:5000/api/shop/review/${id}`
+  );
 
-// Alias for backward compatibility
-export const getReviews = getProductReviews;
+  return response.data;
+});
 
 const reviewSlice = createSlice({
   name: "reviewSlice",
@@ -31,23 +32,14 @@ const reviewSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(addReview.pending, (state) => {
+      .addCase(getReviews.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(addReview.fulfilled, (state, action) => {
-        state.isLoading = false;
-      })
-      .addCase(addReview.rejected, (state) => {
-        state.isLoading = false;
-      })
-      .addCase(getProductReviews.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(getProductReviews.fulfilled, (state, action) => {
+      .addCase(getReviews.fulfilled, (state, action) => {
         state.isLoading = false;
         state.reviews = action.payload.data;
       })
-      .addCase(getProductReviews.rejected, (state) => {
+      .addCase(getReviews.rejected, (state) => {
         state.isLoading = false;
         state.reviews = [];
       });

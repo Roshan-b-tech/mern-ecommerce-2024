@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axiosInstance from "@/config/axios";
+import axios from "axios";
 
 const initialState = {
   approvalURL: null,
@@ -9,10 +9,14 @@ const initialState = {
   orderDetails: null,
 };
 
-export const createOrder = createAsyncThunk(
-  "/order/createOrder",
+export const createNewOrder = createAsyncThunk(
+  "/order/createNewOrder",
   async (orderData) => {
-    const response = await axiosInstance.post("/api/shop/order/create", orderData);
+    const response = await axios.post(
+      "http://localhost:5000/api/shop/order/create",
+      orderData
+    );
+
     return response.data;
   }
 );
@@ -20,50 +24,43 @@ export const createOrder = createAsyncThunk(
 export const capturePayment = createAsyncThunk(
   "/order/capturePayment",
   async ({ paymentId, payerId, orderId }) => {
-    const response = await axiosInstance.post("/api/shop/order/capture", {
-      paymentId,
-      payerId,
-      orderId,
-    });
+    const response = await axios.post(
+      "http://localhost:5000/api/shop/order/capture",
+      {
+        paymentId,
+        payerId,
+        orderId,
+      }
+    );
+
     return response.data;
   }
 );
 
-export const fetchAllOrders = createAsyncThunk(
-  "/order/fetchAllOrders",
+export const getAllOrdersByUserId = createAsyncThunk(
+  "/order/getAllOrdersByUserId",
   async (userId) => {
-    const response = await axiosInstance.get(`/api/shop/order/list/${userId}`);
-    return response.data;
-  }
-);
-
-export const fetchOrderDetails = createAsyncThunk(
-  "/order/fetchOrderDetails",
-  async ({ userId, orderId }) => {
-    const response = await axiosInstance.get(
-      `/api/shop/order/details/${orderId}`
+    const response = await axios.get(
+      `http://localhost:5000/api/shop/order/list/${userId}`
     );
+
     return response.data;
   }
 );
 
-export const updateOrderStatus = createAsyncThunk(
-  "/order/updateOrderStatus",
-  async ({ userId, orderId, orderStatus }) => {
-    const response = await axiosInstance.put(
-      `/api/shop/order/update-status/${userId}/${orderId}`,
-      { orderStatus }
+export const getOrderDetails = createAsyncThunk(
+  "/order/getOrderDetails",
+  async (id) => {
+    const response = await axios.get(
+      `http://localhost:5000/api/shop/order/details/${id}`
     );
+
     return response.data;
   }
 );
-
-// Aliases for backward compatibility
-export const getOrderDetails = fetchOrderDetails;
-export const getAllOrdersByUserId = fetchAllOrders;
 
 const shoppingOrderSlice = createSlice({
-  name: "shoppingOrder",
+  name: "shoppingOrderSlice",
   initialState,
   reducers: {
     resetOrderDetails: (state) => {
@@ -72,68 +69,44 @@ const shoppingOrderSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(createOrder.pending, (state) => {
+      .addCase(createNewOrder.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(createOrder.fulfilled, (state, action) => {
+      .addCase(createNewOrder.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.orderList = [...state.orderList, action.payload.data];
         state.approvalURL = action.payload.approvalURL;
         state.orderId = action.payload.orderId;
-      })
-      .addCase(createOrder.rejected, (state) => {
-        state.isLoading = false;
-      })
-      .addCase(capturePayment.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(capturePayment.fulfilled, (state, action) => {
-        state.isLoading = false;
-        const updatedOrder = action.payload.data;
-        state.orderList = state.orderList.map((order) =>
-          order._id === updatedOrder._id ? updatedOrder : order
+        sessionStorage.setItem(
+          "currentOrderId",
+          JSON.stringify(action.payload.orderId)
         );
-        // Reset PayPal-related state
+      })
+      .addCase(createNewOrder.rejected, (state) => {
+        state.isLoading = false;
         state.approvalURL = null;
         state.orderId = null;
       })
-      .addCase(capturePayment.rejected, (state) => {
-        state.isLoading = false;
-      })
-      .addCase(fetchAllOrders.pending, (state) => {
+      .addCase(getAllOrdersByUserId.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(fetchAllOrders.fulfilled, (state, action) => {
+      .addCase(getAllOrdersByUserId.fulfilled, (state, action) => {
         state.isLoading = false;
         state.orderList = action.payload.data;
       })
-      .addCase(fetchAllOrders.rejected, (state) => {
+      .addCase(getAllOrdersByUserId.rejected, (state) => {
         state.isLoading = false;
         state.orderList = [];
       })
-      .addCase(fetchOrderDetails.pending, (state) => {
+      .addCase(getOrderDetails.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(fetchOrderDetails.fulfilled, (state, action) => {
+      .addCase(getOrderDetails.fulfilled, (state, action) => {
         state.isLoading = false;
         state.orderDetails = action.payload.data;
       })
-      .addCase(fetchOrderDetails.rejected, (state) => {
+      .addCase(getOrderDetails.rejected, (state) => {
         state.isLoading = false;
         state.orderDetails = null;
-      })
-      .addCase(updateOrderStatus.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(updateOrderStatus.fulfilled, (state, action) => {
-        state.isLoading = false;
-        const updatedOrder = action.payload.data;
-        state.orderList = state.orderList.map((order) =>
-          order._id === updatedOrder._id ? updatedOrder : order
-        );
-      })
-      .addCase(updateOrderStatus.rejected, (state) => {
-        state.isLoading = false;
       });
   },
 });

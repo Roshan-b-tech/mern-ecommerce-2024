@@ -25,15 +25,13 @@ function ShoppingOrders() {
   const { user } = useSelector((state) => state.auth);
   const { orderList, orderDetails } = useSelector((state) => state.shopOrder);
 
-  function handleFetchOrderDetails(orderId) {
-    dispatch(getOrderDetails({ userId: user?.id, orderId }));
+  function handleFetchOrderDetails(getId) {
+    dispatch(getOrderDetails(getId));
   }
 
   useEffect(() => {
-    if (user?.id) {
-      dispatch(getAllOrdersByUserId(user.id));
-    }
-  }, [dispatch, user?.id]);
+    dispatch(getAllOrdersByUserId(user?.id));
+  }, [dispatch]);
 
   useEffect(() => {
     if (orderDetails !== null) setOpenDetailsDialog(true);
@@ -68,10 +66,10 @@ function ShoppingOrders() {
                   <TableCell>
                     <Badge
                       className={`py-1 px-3 ${orderItem?.orderStatus === "confirmed"
-                        ? "bg-green-500"
-                        : orderItem?.orderStatus === "rejected"
-                          ? "bg-red-600"
-                          : "bg-black"
+                          ? "bg-green-500"
+                          : orderItem?.orderStatus === "rejected"
+                            ? "bg-red-600"
+                            : "bg-black"
                         }`}
                     >
                       {orderItem?.orderStatus}
